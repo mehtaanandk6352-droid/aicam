@@ -13,8 +13,18 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
-      - run: gradle assembleDebug --no-daemon --console=plain
+      - name: Build
         working-directory: AICam
+        run: |
+          set +e
+          gradle assembleDebug --no-daemon --console=plain > build.log 2>&1
+          code=$?
+          echo "BUILD EXIT CODE: $code" >> $GITHUB_STEP_SUMMARY
+          echo "----- ERRORS -----" >> $GITHUB_STEP_SUMMARY
+          grep -E "^e: |What went wrong|Could not|Execution failed|A problem|error:" -A4 build.log | head -60 >> $GITHUB_STEP_SUMMARY
+          echo "----- LAST LINES -----" >> $GITHUB_STEP_SUMMARY
+          tail -25 build.log >> $GITHUB_STEP_SUMMARY
+          exit $code
       - uses: actions/upload-artifact@v4
         with:
           name: AICam-apk
