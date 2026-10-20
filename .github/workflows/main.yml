@@ -6,6 +6,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: unzip -q AICam.zip
+      - name: Fix AudioConfig import
+        run: sed -i 's/import androidx.camera.video.AudioConfig/import androidx.camera.view.video.AudioConfig/' AICam/app/src/main/java/com/example/aicam/CameraScreen.kt
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -20,10 +22,7 @@ jobs:
           gradle assembleDebug --no-daemon --console=plain > build.log 2>&1
           code=$?
           echo "BUILD EXIT CODE: $code" >> $GITHUB_STEP_SUMMARY
-          echo "----- ERRORS -----" >> $GITHUB_STEP_SUMMARY
-          grep -E "^e: |What went wrong|Could not|Execution failed|A problem|error:" -A4 build.log | head -60 >> $GITHUB_STEP_SUMMARY
-          echo "----- LAST LINES -----" >> $GITHUB_STEP_SUMMARY
-          tail -25 build.log >> $GITHUB_STEP_SUMMARY
+          grep -E "^e: |What went wrong|Could not|Execution failed|error:" -A4 build.log | head -60 >> $GITHUB_STEP_SUMMARY
           exit $code
       - uses: actions/upload-artifact@v4
         with:
